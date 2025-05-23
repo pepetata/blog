@@ -1,0 +1,6 @@
+PATCH http://localhost:3001/api/blogs/682df95acca05b468966de9e
+Content-Type: application/json
+
+{
+  "author": "New Author Name"
+}

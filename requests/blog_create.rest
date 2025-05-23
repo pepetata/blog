@@ -1,8 +1,10 @@
-POST http://localhost:3001/api/blogs HTTP/1.1
-content-type: application/json
+### Request to create a new blog
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZsYXZpbyIsImlkIjoiNjgyZjFmYTk1YzliMjg5NzgzNmRkZGFlIiwiaWF0IjoxNzQ3OTQ0ODk2LCJleHAiOjE3NDc5NDg0OTZ9.A_7738tlzG3YVJd2RnNp94eUlObCyhR5jERrQOGIm-I
 
 {
-  "title": "titulo",
+  "title": "novo titulo ================== ",
   "author": "eu",
   "url": "??????",
   "likes": 0

@@ -1,0 +1,114 @@
+const blogsRouter = require("express").Router();
+const jwt = require("jsonwebtoken");
+
+const Blog = require("../models/blog");
+
+/////////////////////////////////////////////////////  gets
+blogsRouter.get("/", async (request, response) => {
+  const blogs = await Blog.find({});
+  response.json(blogs);
+});
+
+blogsRouter.get("/:id", async (request, response) => {
+  const blog = await Blog.findById(request.params.id);
+  // console.log(`================blog`, blog);
+  if (blog) {
+    response.json(blog);
+  } else {
+    return response.status(404).json({ error: "blog not found" });
+  }
+});
+
+/////////////////////////////////////////////////////  posts
+blogsRouter.post("/", async (request, response) => {
+  // console.log(`======================= blogsRouter.post body`, request.body);
+  const user = request.user;
+  const decodedToken = jwt.verify(request.token, process.env.SECRET);
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: "token invalid" });
+  }
+  // console.log(`==========  decodedToken`, decodedToken);
+  if (!user) {
+    return response.status(400).json({ error: "user is missing or not valid" });
+  }
+
+  try {
+    const blog = new Blog({
+      ...request.body,
+      user: user._id, // or user.id
+    });
+    const savedBlog = await blog.save();
+    user.blogs = user.blogs.concat(savedBlog._id);
+    await user.save();
+    response.status(201).json(savedBlog);
+  } catch (error) {
+    response.status(400).json({ error: error.message });
+  }
+});
+
+/////////////////////////////////////////////////////  patch
+blogsRouter.patch("/:id", async (request, response) => {
+  // console.log(`======================= blogsRouter.post body`, request.body);
+  const user = request.user;
+
+  const decodedToken = jwt.verify(request.token, process.env.SECRET);
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: "token invalid" });
+  }
+
+  // Added `next` here for error handling
+  const id = request.params.id;
+  const body = request.body;
+  // console.log(`===================== id`, id, body);
+  ////////////////////////  check if the user has the right to delete it
+  // get the blog
+  const blog = await Blog.findById(id);
+  if (!blog) return response.status(404).json({ error: "blog not found" });
+
+  if (blog.user.toString() !== user.id)
+    return response.status(404).json({ error: "user cannot delete this blog" });
+
+  const updatedBlog = await Blog.findByIdAndUpdate(id, body, {
+    new: true,
+    runValidators: true,
+    context: "query", // Add this for better validator compatibility
+  });
+
+  if (!updatedBlog) {
+    return response.status(404).json({ error: "blog not found" });
+  }
+
+  response.status(200).json(updatedBlog);
+});
+
+/////////////////////////////////////////////////////  deletes
+blogsRouter.delete("/:id", async (request, response) => {
+  // console.log(`======================= blogsRouter.post body`, request.body);
+  const user = request.user;
+  const decodedToken = jwt.verify(request.token, process.env.SECRET);
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: "token invalid" });
+  }
+  ////////////////////////  check if the user has the right to delete it
+  // get the blog
+  const blog = await Blog.findById(request.params.id);
+  if (!blog) return response.status(404).json({ error: "blog not found" });
+
+  console.log(
+    `====================== decodedToken`,
+    decodedToken.id,
+    blog.user.toString(),
+    decodedToken.id === blog.user.toString()
+  );
+  if (blog.user.toString() !== user.id)
+    return response.status(404).json({ error: "user cannot delete this blog" });
+
+  const deletedBlog = await Blog.findByIdAndDelete(request.params.id);
+  if (!deletedBlog) {
+    // throw new Error("This will be caught by Express 5 error handler");
+    return response.status(404).json({ error: "blog not found" });
+  }
+  response.status(204).end();
+});
+
+module.exports = blogsRouter;
