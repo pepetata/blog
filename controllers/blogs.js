@@ -48,7 +48,7 @@ blogsRouter.post("/", async (request, response) => {
 
 /////////////////////////////////////////////////////  patch
 blogsRouter.patch("/:id", async (request, response) => {
-  // console.log(`======================= blogsRouter.post body`, request.body);
+  console.log(`======================= blogsRouter.patch body`, request.body);
   const user = request.user;
 
   const decodedToken = jwt.verify(request.token, process.env.SECRET);
@@ -59,14 +59,15 @@ blogsRouter.patch("/:id", async (request, response) => {
   // Added `next` here for error handling
   const id = request.params.id;
   const body = request.body;
-  // console.log(`===================== id`, id, body);
-  ////////////////////////  check if the user has the right to delete it
+  console.log(`===================== id`, id, body);
+  ////////////////////////  check if the user has the right to update it
   // get the blog
   const blog = await Blog.findById(id);
   if (!blog) return response.status(404).json({ error: "blog not found" });
 
+  console.log(`----- blog found`, blog);
   if (blog.user.toString() !== user.id)
-    return response.status(404).json({ error: "user cannot delete this blog" });
+    return response.status(404).json({ error: "user cannot update this blog" });
 
   const updatedBlog = await Blog.findByIdAndUpdate(id, body, {
     new: true,
@@ -78,6 +79,25 @@ blogsRouter.patch("/:id", async (request, response) => {
     return response.status(404).json({ error: "blog not found" });
   }
 
+  response.status(200).json(updatedBlog);
+});
+
+//////////// add a like
+blogsRouter.patch("/:id/likes", async (request, response) => {
+  console.log(`======================= blogsRouter.post body`, request.body);
+  const id = request.params.id;
+  console.log(`===================== id`, id);
+  // get the blog
+  const blog = await Blog.findById(id);
+  if (!blog) return response.status(404).json({ error: "blog not found" });
+  console.log(`----- blog found`, blog);
+
+  // Anyone authenticated can like
+  const updatedBlog = await Blog.findByIdAndUpdate(
+    id,
+    { likes: blog.likes + 1 },
+    { new: true }
+  );
   response.status(200).json(updatedBlog);
 });
 
