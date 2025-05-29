@@ -21,13 +21,14 @@ blogsRouter.get("/:id", async (request, response) => {
 
 /////////////////////////////////////////////////////  posts
 blogsRouter.post("/", async (request, response) => {
-  // console.log(`======================= blogsRouter.post body`, request.body);
+  console.log(`======================= blogsRouter.post body`, request.body);
   const user = request.user;
   const decodedToken = jwt.verify(request.token, process.env.SECRET);
   if (!decodedToken.id) {
     return response.status(401).json({ error: "token invalid" });
   }
-  // console.log(`==========  decodedToken`, decodedToken);
+  console.log(`==========  decodedToken`, decodedToken);
+  console.log(`==========  user`, user);
   if (!user) {
     return response.status(400).json({ error: "user is missing or not valid" });
   }
