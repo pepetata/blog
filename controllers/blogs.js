@@ -104,7 +104,11 @@ blogsRouter.patch("/:id/likes", async (request, response) => {
 
 /////////////////////////////////////////////////////  deletes
 blogsRouter.delete("/:id", async (request, response) => {
-  // console.log(`======================= blogsRouter.post body`, request.body);
+  const id = request.params.id;
+  console.log(
+    `======================= blogsRouter.delete request.params.id`,
+    id
+  );
   const user = request.user;
   const decodedToken = jwt.verify(request.token, process.env.SECRET);
   if (!decodedToken.id) {
@@ -112,24 +116,21 @@ blogsRouter.delete("/:id", async (request, response) => {
   }
   ////////////////////////  check if the user has the right to delete it
   // get the blog
-  const blog = await Blog.findById(request.params.id);
-  if (!blog) return response.status(404).json({ error: "blog not found" });
-
-  console.log(
-    `====================== decodedToken`,
-    decodedToken.id,
-    blog.user.toString(),
-    decodedToken.id === blog.user.toString()
-  );
+  const blog = await Blog.findById(id);
+  if (!blog)
+    return response.status(404).json({ error: "Blog to remove not found!" });
+  console.log(`----- blog found`, blog);
+  // Check if the blog belongs to the user
   if (blog.user.toString() !== user.id)
-    return response.status(404).json({ error: "user cannot delete this blog" });
-
-  const deletedBlog = await Blog.findByIdAndDelete(request.params.id);
+    return response.status(404).json({ error: "User cannot delete this blog" });
+  // If the blog belongs to the user, delete it
+  console.log(`----- blog belongs to user, deleting...`);
+  // Delete the blog
+  const deletedBlog = await Blog.findByIdAndDelete(id);
   if (!deletedBlog) {
-    // throw new Error("This will be caught by Express 5 error handler");
-    return response.status(404).json({ error: "blog not found" });
+    return response.status(404).json({ error: "Blog to remove not found." });
   }
-  response.status(204).end();
+  return response.status(204).end();
 });
 
 module.exports = blogsRouter;
