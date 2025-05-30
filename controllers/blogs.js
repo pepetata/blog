@@ -85,7 +85,7 @@ blogsRouter.patch("/:id", async (request, response) => {
 
 //////////// add a like
 blogsRouter.patch("/:id/likes", async (request, response) => {
-  console.log(`======================= blogsRouter.post body`, request.body);
+  console.log(`======================= blogsRouter.likes body`, request.body);
   const id = request.params.id;
   console.log(`===================== id`, id);
   // get the blog
