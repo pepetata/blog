@@ -5,7 +5,7 @@ const Blog = require("../models/blog");
 
 /////////////////////////////////////////////////////  gets
 blogsRouter.get("/", async (request, response) => {
-  const blogs = await Blog.find({});
+  const blogs = await Blog.find({}).populate("user", { username: 1, name: 1 });
   response.json(blogs);
 });
 
@@ -13,7 +13,7 @@ blogsRouter.get("/:id", async (request, response) => {
   const blog = await Blog.findById(request.params.id);
   // console.log(`================blog`, blog);
   if (blog) {
-    response.json(blog);
+    response.json(blog).populate("user", { username: 1, name: 1 });
   } else {
     return response.status(404).json({ error: "blog not found" });
   }
@@ -41,7 +41,12 @@ blogsRouter.post("/", async (request, response) => {
     const savedBlog = await blog.save();
     user.blogs = user.blogs.concat(savedBlog._id);
     await user.save();
-    response.status(201).json(savedBlog);
+    // response.status(201).json(savedBlog);
+    const populatedBlog = await savedBlog.populate("user", {
+      username: 1,
+      name: 1,
+    });
+    response.status(201).json(populatedBlog);
   } catch (error) {
     response.status(400).json({ error: error.message });
   }
