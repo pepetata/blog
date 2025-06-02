@@ -12,36 +12,28 @@ const mongoose = require("mongoose");
 //     console.log('error connecting to MongoDB:', error.message)
 //   })
 
-const blogSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    minLength: 3,
-    required: [true, "Title is required"],
+const commentSchema = new mongoose.Schema({
+  blogId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Blog",
+    required: [true, "Blog ID is required"],
   },
-  author: String,
-  url: {
+  comment: {
     type: String,
-    minLength: 3,
-    required: [true, "URL is required"],
+    required: [true, "Comment is required"],
   },
-  likes: Number,
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    required: [true, "User ID is required"],
   },
   date: {
     type: Date,
     default: Date.now,
   },
-  comments: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Comment",
-    },
-  ],
 });
 
-blogSchema.set("toJSON", {
+commentSchema.set("toJSON", {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
     delete returnedObject._id;
@@ -49,4 +41,4 @@ blogSchema.set("toJSON", {
   },
 });
 
-module.exports = mongoose.model("Blog", blogSchema);
+module.exports = mongoose.model("Comment", commentSchema);

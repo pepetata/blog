@@ -2,6 +2,8 @@ const blogsRouter = require("express").Router();
 const jwt = require("jsonwebtoken");
 
 const Blog = require("../models/blog");
+const Comment = require("../models/comment");
+const User = require("../models/user");
 
 /////////////////////////////////////////////////////  gets
 blogsRouter.get("/", async (request, response) => {
@@ -36,7 +38,8 @@ blogsRouter.post("/", async (request, response) => {
   try {
     const blog = new Blog({
       ...request.body,
-      user: user._id, // or user.id
+      user: user._id,
+      date: new Date(),
     });
     const savedBlog = await blog.save();
     user.blogs = user.blogs.concat(savedBlog._id);
@@ -112,7 +115,7 @@ blogsRouter.delete("/:id", async (request, response) => {
   const id = request.params.id;
   console.log(
     `======================= blogsRouter.delete request.params.id`,
-    id
+    request.params
   );
   const user = request.user;
   const decodedToken = jwt.verify(request.token, process.env.SECRET);
@@ -130,6 +133,22 @@ blogsRouter.delete("/:id", async (request, response) => {
     return response.status(404).json({ error: "User cannot delete this blog" });
   // If the blog belongs to the user, delete it
   console.log(`----- blog belongs to user, deleting...`);
+
+  // Delete all comments for this blog
+  const comments = await Comment.find({ blogId: id });
+
+  // Remove each comment from its user's comments array
+  for (const comment of comments) {
+    await User.findByIdAndUpdate(comment.user, {
+      $pull: { comments: comment._id },
+    });
+  }
+
+  await Comment.deleteMany({ blogId: id });
+
+  // Update the user to remove this blog from their blogs array
+  await User.findByIdAndUpdate(user.id, { $pull: { blogs: blog._id } });
+
   // Delete the blog
   const deletedBlog = await Blog.findByIdAndDelete(id);
   if (!deletedBlog) {
