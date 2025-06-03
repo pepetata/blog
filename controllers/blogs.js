@@ -23,14 +23,14 @@ blogsRouter.get("/:id", async (request, response) => {
 
 /////////////////////////////////////////////////////  posts
 blogsRouter.post("/", async (request, response) => {
-  console.log(`======================= blogsRouter.post body`, request.body);
+  // console.log(`======================= blogsRouter.post body`, request.body);
   const user = request.user;
   const decodedToken = jwt.verify(request.token, process.env.SECRET);
   if (!decodedToken.id) {
     return response.status(401).json({ error: "token invalid" });
   }
-  console.log(`==========  decodedToken`, decodedToken);
-  console.log(`==========  user`, user);
+  // console.log(`==========  decodedToken`, decodedToken);
+  // console.log(`==========  user`, user);
   if (!user) {
     return response.status(400).json({ error: "user is missing or not valid" });
   }
@@ -38,6 +38,7 @@ blogsRouter.post("/", async (request, response) => {
   try {
     const blog = new Blog({
       ...request.body,
+      likes: 0,
       user: user._id,
       date: new Date(),
     });
@@ -57,7 +58,7 @@ blogsRouter.post("/", async (request, response) => {
 
 /////////////////////////////////////////////////////  patch
 blogsRouter.patch("/:id", async (request, response) => {
-  console.log(`======================= blogsRouter.patch body`, request.body);
+  // console.log(`======================= blogsRouter.patch body`, request.body);
   const user = request.user;
 
   const decodedToken = jwt.verify(request.token, process.env.SECRET);
@@ -68,15 +69,15 @@ blogsRouter.patch("/:id", async (request, response) => {
   // Added `next` here for error handling
   const id = request.params.id;
   const body = request.body;
-  console.log(`===================== id`, id, body);
+  // console.log(`===================== id`, id, body);
   ////////////////////////  check if the user has the right to update it
   // get the blog
   const blog = await Blog.findById(id);
   if (!blog) return response.status(404).json({ error: "blog not found" });
 
-  console.log(`----- blog found`, blog);
+  // console.log(`----- blog found`, blog);
   if (blog.user.toString() !== user.id)
-    return response.status(404).json({ error: "user cannot update this blog" });
+    return response.status(404).json({ error: "User cannot update this blog" });
 
   const updatedBlog = await Blog.findByIdAndUpdate(id, body, {
     new: true,
@@ -93,13 +94,13 @@ blogsRouter.patch("/:id", async (request, response) => {
 
 //////////// add a like
 blogsRouter.patch("/:id/likes", async (request, response) => {
-  console.log(`======================= blogsRouter.likes body`, request.body);
+  // console.log(`======================= blogsRouter.likes body`, request.body);
   const id = request.params.id;
-  console.log(`===================== id`, id);
+  // console.log(`===================== id`, id);
   // get the blog
   const blog = await Blog.findById(id);
   if (!blog) return response.status(404).json({ error: "blog not found" });
-  console.log(`----- blog found`, blog);
+  // console.log(`----- blog found`, blog);
 
   // Anyone authenticated can like
   const updatedBlog = await Blog.findByIdAndUpdate(
@@ -113,10 +114,10 @@ blogsRouter.patch("/:id/likes", async (request, response) => {
 /////////////////////////////////////////////////////  deletes
 blogsRouter.delete("/:id", async (request, response) => {
   const id = request.params.id;
-  console.log(
-    `======================= blogsRouter.delete request.params.id`,
-    request.params
-  );
+  // console.log(
+  //   `======================= blogsRouter.delete request.params.id`,
+  //   request.params
+  // );
   const user = request.user;
   const decodedToken = jwt.verify(request.token, process.env.SECRET);
   if (!decodedToken.id) {
@@ -127,12 +128,12 @@ blogsRouter.delete("/:id", async (request, response) => {
   const blog = await Blog.findById(id);
   if (!blog)
     return response.status(404).json({ error: "Blog to remove not found!" });
-  console.log(`----- blog found`, blog);
+  // console.log(`----- blog found`, blog);
   // Check if the blog belongs to the user
   if (blog.user.toString() !== user.id)
     return response.status(404).json({ error: "User cannot delete this blog" });
   // If the blog belongs to the user, delete it
-  console.log(`----- blog belongs to user, deleting...`);
+  // console.log(`----- blog belongs to user, deleting...`);
 
   // Delete all comments for this blog
   const comments = await Comment.find({ blogId: id });

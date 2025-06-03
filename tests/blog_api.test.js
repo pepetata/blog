@@ -103,7 +103,13 @@ describe("Blogs", () => {
         .expect(200)
         .expect("Content-Type", /application\/json/);
 
-      const expectedBlog = { ...blogToView, user: blogToView.user?.toString() };
+      const expectedBlog = {
+        ...blogToView,
+        user: blogToView.user?.toString(),
+      };
+      if (expectedBlog.date instanceof Date) {
+        expectedBlog.date = expectedBlog.date.toISOString();
+      }
       assert.deepStrictEqual(resultBlog.body, expectedBlog);
     });
 
@@ -218,7 +224,7 @@ describe("Blogs", () => {
         .auth(token, { type: "bearer" })
         .send(changeBody)
         .expect(404);
-      assert(response.body.error.includes("user cannot delete this blog"));
+      assert(response.body.error.includes("User cannot update this blog"));
     });
 
     test("fail to update a field of missing data", async () => {
@@ -308,7 +314,7 @@ describe("Blogs", () => {
         .delete(`/api/blogs/${blogToDelete.id}`)
         .auth(token, { type: "bearer" })
         .expect(404);
-      assert(response.body.error.includes("user cannot delete this blog"));
+      assert(response.body.error.includes("User cannot delete this blog"));
     });
 
     test("fails to delete non-existing data", async () => {
